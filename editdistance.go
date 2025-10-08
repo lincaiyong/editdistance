@@ -1,44 +1,12 @@
 package editdistance
 
-const (
-	OpInsert  = "+"
-	OpDelete  = "-"
-	OpReplace = "*"
-	OpKeep    = "="
-)
-
-type Op struct {
-	Type string `json:"type"`
-	From string `json:"from,omitempty"`
-	To   string `json:"to,omitempty"`
-}
-
 func Chars(s1, s2 string) int {
 	distance, _ := editDistance[rune]([]rune(s1), []rune(s2), false)
 	return distance
 }
 
-func CharsWithOps(s1, s2 string) (int, []Op) {
+func CharsWithOps(s1, s2 string) (int, []*EditOp) {
 	return editDistance[rune]([]rune(s1), []rune(s2), true)
-}
-
-func Split(text string) []string {
-	var words []string
-	runes := []rune(text)
-	for i := 0; i < len(runes); i++ {
-		r := runes[i]
-		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') {
-			start := i
-			for i < len(runes) && ((runes[i] >= 'a' && runes[i] <= 'z') || (runes[i] >= 'A' && runes[i] <= 'Z')) {
-				i++
-			}
-			words = append(words, string(runes[start:i]))
-			i--
-		} else {
-			words = append(words, string(r))
-		}
-	}
-	return words
 }
 
 func Words(s1, s2 []string) int {
@@ -46,7 +14,7 @@ func Words(s1, s2 []string) int {
 	return distance
 }
 
-func WordsWithOps(s1, s2 []string) (int, []Op) {
+func WordsWithOps(s1, s2 []string) (int, []*EditOp) {
 	return editDistance[string](s1, s2, true)
 }
 
@@ -59,7 +27,7 @@ func min_(a, b, c int) int {
 	return c
 }
 
-func editDistance[T string | rune](s1, s2 []T, withOps bool) (int, []Op) {
+func editDistance[T string | rune](s1, s2 []T, withOps bool) (int, []*EditOp) {
 	m, n := len(s1), len(s2)
 	dp := make([][]int, m+1)
 	for i := range dp {
@@ -82,37 +50,23 @@ func editDistance[T string | rune](s1, s2 []T, withOps bool) (int, []Op) {
 			}
 		}
 	}
-	var ops []Op
+	var ops []*EditOp
 	if withOps {
 		i, j := m, n
 		for i > 0 || j > 0 {
 			if i > 0 && j > 0 && s1[i-1] == s2[j-1] {
-				ops = append(ops, Op{
-					Type: OpKeep,
-					From: string(s1[i-1]),
-					To:   string(s2[j-1]),
-				})
+				ops = append(ops, NewKeepOp(string(s1[i-1]), string(s2[j-1]), i-1, j-1))
 				i--
 				j--
 			} else if i > 0 && j > 0 && dp[i][j] == dp[i-1][j-1]+1 {
-				ops = append(ops, Op{
-					Type: OpReplace,
-					From: string(s1[i-1]),
-					To:   string(s2[j-1]),
-				})
+				ops = append(ops, NewReplaceOp(string(s1[i-1]), string(s2[j-1]), i-1, j-1))
 				i--
 				j--
 			} else if i > 0 && dp[i][j] == dp[i-1][j]+1 {
-				ops = append(ops, Op{
-					Type: OpDelete,
-					From: string(s1[i-1]),
-				})
+				ops = append(ops, NewDeleteOp(string(s1[i-1]), i-1))
 				i--
 			} else if j > 0 && dp[i][j] == dp[i][j-1]+1 {
-				ops = append(ops, Op{
-					Type: OpInsert,
-					To:   string(s2[j-1]),
-				})
+				ops = append(ops, NewInsertOp(string(s2[j-1]), j-1))
 				j--
 			}
 		}
