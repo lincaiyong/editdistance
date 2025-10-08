@@ -1,10 +1,10 @@
 package editdistance
 
 const (
-	OpInsert = "+"
-	OpDelete = "-"
-	OpRelace = "*"
-	OpKeep   = "="
+	OpInsert  = "+"
+	OpDelete  = "-"
+	OpReplace = "*"
+	OpKeep    = "="
 )
 
 type Op struct {
@@ -59,7 +59,7 @@ func editDistance[T string | rune](s1, s2 []T, withOp bool) ([]Op, int) {
 				j--
 			} else if i > 0 && j > 0 && dp[i][j] == dp[i-1][j-1]+1 {
 				ops = append(ops, Op{
-					Type: OpRelace,
+					Type: OpReplace,
 					From: string(s1[i-1]),
 					To:   string(s2[j-1]),
 				})
