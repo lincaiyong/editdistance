@@ -13,6 +13,43 @@ type Op struct {
 	To   string `json:"to,omitempty"`
 }
 
+func Chars(s1, s2 string) int {
+	distance, _ := editDistance[rune]([]rune(s1), []rune(s2), false)
+	return distance
+}
+
+func CharsWithOps(s1, s2 string) (int, []Op) {
+	return editDistance[rune]([]rune(s1), []rune(s2), true)
+}
+
+func Split(text string) []string {
+	var words []string
+	runes := []rune(text)
+	for i := 0; i < len(runes); i++ {
+		r := runes[i]
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') {
+			start := i
+			for i < len(runes) && ((runes[i] >= 'a' && runes[i] <= 'z') || (runes[i] >= 'A' && runes[i] <= 'Z')) {
+				i++
+			}
+			words = append(words, string(runes[start:i]))
+			i--
+		} else {
+			words = append(words, string(r))
+		}
+	}
+	return words
+}
+
+func Words(s1, s2 []string) int {
+	distance, _ := editDistance[string](s1, s2, false)
+	return distance
+}
+
+func WordsWithOps(s1, s2 []string) (int, []Op) {
+	return editDistance[string](s1, s2, true)
+}
+
 func min_(a, b, c int) int {
 	if a <= b && a <= c {
 		return a
@@ -22,7 +59,7 @@ func min_(a, b, c int) int {
 	return c
 }
 
-func editDistance[T string | rune](s1, s2 []T, withOp bool) ([]Op, int) {
+func editDistance[T string | rune](s1, s2 []T, withOps bool) (int, []Op) {
 	m, n := len(s1), len(s2)
 	dp := make([][]int, m+1)
 	for i := range dp {
@@ -46,7 +83,7 @@ func editDistance[T string | rune](s1, s2 []T, withOp bool) ([]Op, int) {
 		}
 	}
 	var ops []Op
-	if withOp {
+	if withOps {
 		i, j := m, n
 		for i > 0 || j > 0 {
 			if i > 0 && j > 0 && s1[i-1] == s2[j-1] {
@@ -83,38 +120,5 @@ func editDistance[T string | rune](s1, s2 []T, withOp bool) ([]Op, int) {
 			ops[k], ops[len(ops)-k-1] = ops[len(ops)-k-1], ops[k]
 		}
 	}
-	return ops, dp[m][n]
-}
-
-func WordLevelEditDistance(text1, text2 string, ignored map[rune]struct{}, withOp bool) ([]Op, int) {
-	if ignored == nil {
-		ignored = make(map[rune]struct{})
-	}
-	splitFn := func(t string) []string {
-		var words []string
-		runes := []rune(t)
-		for i := 0; i < len(runes); i++ {
-			r := runes[i]
-			if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') {
-				start := i
-				for i < len(runes) && ((runes[i] >= 'a' && runes[i] <= 'z') || (runes[i] >= 'A' && runes[i] <= 'Z')) {
-					i++
-				}
-				words = append(words, string(runes[start:i]))
-				i--
-			} else if _, ok := ignored[r]; !ok {
-				words = append(words, string(r))
-			}
-		}
-		return words
-	}
-	s1 := splitFn(text1)
-	s2 := splitFn(text2)
-	return editDistance[string](s1, s2, withOp)
-}
-
-func CharLevelEditDistance(text1, text2 string, withOp bool) ([]Op, int) {
-	s1 := []rune(text1)
-	s2 := []rune(text2)
-	return editDistance[rune](s1, s2, withOp)
+	return dp[m][n], ops
 }
