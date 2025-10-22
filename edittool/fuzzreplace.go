@@ -17,7 +17,7 @@ func removeWhitespace(s string) string {
 	return builder.String()
 }
 
-func FuzzReplaceAll(content, from, to string) string {
+func FuzzReplace(content, from, to string) string {
 	fromNormalized := removeWhitespace(from)
 	if fromNormalized == "" {
 		return content
