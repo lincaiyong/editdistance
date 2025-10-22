@@ -65,5 +65,8 @@ func FuzzReplace(content, from, to string) string {
 			}
 		}
 	}
+	if minS1 == "" {
+		return content
+	}
 	return strings.ReplaceAll(content, minS1, to)
 }
