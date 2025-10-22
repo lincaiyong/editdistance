@@ -5,42 +5,85 @@ import (
 	"strings"
 )
 
-func DiffByLine(s1, s2 string) string {
+func normalizeLines(lines []string) []string {
+	normalized := make([]string, len(lines))
+	for i, line := range lines {
+		trimmed := removeWhitespace(line)
+		normalized[i] = trimmed
+	}
+	return normalized
+}
+
+func DiffByLine(s1, s2 string, ignoreWhitespace bool) string {
 	w1 := strings.Split(s1, "\n")
 	w2 := strings.Split(s2, "\n")
+	origW1 := w1
+	origW2 := w2
+	if ignoreWhitespace {
+		w1 = normalizeLines(w1)
+		w2 = normalizeLines(w2)
+	}
 	_, ops := editdistance.WordsWithOps(w1, w2)
 	var sb strings.Builder
-
-	var deletions []string
-	var insertions []string
-
+	type opWithContent struct {
+		opType string
+		content string
+	}
+	var deletions []opWithContent
+	var insertions []opWithContent
 	flushChanges := func() {
 		for _, del := range deletions {
 			sb.WriteString("-|")
-			sb.WriteString(del)
+			sb.WriteString(del.content)
 			sb.WriteString("\n")
 		}
 		for _, ins := range insertions {
 			sb.WriteString("+|")
-			sb.WriteString(ins)
+			sb.WriteString(ins.content)
 			sb.WriteString("\n")
 		}
 		deletions = deletions[:0]
 		insertions = insertions[:0]
 	}
+	fromIdx := 0
+	toIdx := 0
 	for _, op := range ops {
 		if op.Type == editdistance.OpKeep {
 			flushChanges()
 			sb.WriteString(" |")
-			sb.WriteString(op.From)
+			if fromIdx < len(origW1) {
+				sb.WriteString(origW1[fromIdx])
+			}
 			sb.WriteString("\n")
+			fromIdx++
+			toIdx++
 		} else if op.Type == editdistance.OpInsert {
-			insertions = append(insertions, op.To)
+			content := ""
+			if toIdx < len(origW2) {
+				content = origW2[toIdx]
+			}
+			insertions = append(insertions, opWithContent{op.Type, content})
+			toIdx++
 		} else if op.Type == editdistance.OpDelete {
-			deletions = append(deletions, op.From)
+			content := ""
+			if fromIdx < len(origW1) {
+				content = origW1[fromIdx]
+			}
+			deletions = append(deletions, opWithContent{op.Type, content})
+			fromIdx++
 		} else {
-			deletions = append(deletions, op.From)
-			insertions = append(insertions, op.To)
+			delContent := ""
+			if fromIdx < len(origW1) {
+				delContent = origW1[fromIdx]
+			}
+			insContent := ""
+			if toIdx < len(origW2) {
+				insContent = origW2[toIdx]
+			}
+			deletions = append(deletions, opWithContent{"delete", delContent})
+			insertions = append(insertions, opWithContent{"insert", insContent})
+			fromIdx++
+			toIdx++
 		}
 	}
 	flushChanges()
