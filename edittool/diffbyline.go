@@ -67,7 +67,7 @@ func buildDiff(ops []*editdistance.EditOp, origW1, origW2 []string, showLines ma
 		for _, del := range deletions {
 			sb.WriteString("-|")
 			if showLineNo {
-				sb.WriteString(fmt.Sprintf("%04d|\t", del.FromIndex+1))
+				sb.WriteString(fmt.Sprintf("%04d:    |\t", del.FromIndex+1))
 			}
 			if del.FromIndex < len(origW1) {
 				sb.WriteString(origW1[del.FromIndex])
@@ -77,7 +77,7 @@ func buildDiff(ops []*editdistance.EditOp, origW1, origW2 []string, showLines ma
 		for _, ins := range insertions {
 			sb.WriteString("+|")
 			if showLineNo {
-				sb.WriteString(fmt.Sprintf("%04d|\t", ins.ToIndex+1))
+				sb.WriteString(fmt.Sprintf("    :%04d|\t", ins.ToIndex+1))
 			}
 			if ins.ToIndex < len(origW2) {
 				sb.WriteString(origW2[ins.ToIndex])
@@ -111,7 +111,7 @@ func buildDiff(ops []*editdistance.EditOp, origW1, origW2 []string, showLines ma
 			flushChanges()
 			sb.WriteString(" |")
 			if showLineNo {
-				sb.WriteString(fmt.Sprintf("%04d|\t", op.FromIndex+1))
+				sb.WriteString(fmt.Sprintf("%04d:%04d|\t", op.FromIndex+1, op.ToIndex+1))
 			}
 			if op.FromIndex < len(origW1) {
 				sb.WriteString(origW1[op.FromIndex])
