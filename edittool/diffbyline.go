@@ -10,6 +10,7 @@ type Options struct {
 	IgnoreWhitespace bool
 	ContextLines     int // -1 表示显示所有行
 	WithLineNo       bool
+	LineLimit        int
 }
 
 func normalizeLines(lines []string) []string {
@@ -23,7 +24,13 @@ func normalizeLines(lines []string) []string {
 
 func DiffByLine(s1, s2 string, opts Options) string {
 	w1 := strings.Split(s1, "\n")
+	if opts.LineLimit > 0 && len(w1) > opts.LineLimit {
+		return ""
+	}
 	w2 := strings.Split(s2, "\n")
+	if opts.LineLimit > 0 && len(w2) > opts.LineLimit {
+		return ""
+	}
 	origW1 := w1
 	origW2 := w2
 	if opts.IgnoreWhitespace {
