@@ -13,9 +13,9 @@ func Patch(old, diff string) string {
 	handledLineIdx := -1
 	oldLines := strings.Split(old, "\n")
 	newLines := make([]string, 0, len(oldLines))
-	keepPattern := regexp.MustCompile(`^ \|(\d+):\d+\|\t.*$`)
-	deletePattern := regexp.MustCompile(`^-\|(\d+):\s+\|\t.*$`)
-	insertPattern := regexp.MustCompile(`^\+\|\s+:\d+\|\t(.*)$`)
+	keepPattern := regexp.MustCompile(`^ \|(\d+):\d+\|.*$`)
+	deletePattern := regexp.MustCompile(`^-\|(\d+):\s*\|.*$`)
+	insertPattern := regexp.MustCompile(`^\+\|\s*:\d+\|(.*)$`)
 	for _, line := range strings.Split(diff, "\n") {
 		leftLineNo := -1
 		deleteOp, insertOp := false, false
