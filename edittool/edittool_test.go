@@ -171,3 +171,22 @@ line 20`
 		t.Errorf("上下文0行输出不匹配\n期望:\n%s\n实际:\n%s", expected, ret)
 	}
 }
+
+func TestParseDiff(t *testing.T) {
+	a := `line 1
+line 2 modified
+line x
+line 4
+line 7
+line 8
+line 9
+line 11`
+
+	b := ``
+	diff := GeneratePatch(a, b)
+	fmt.Println(diff)
+	bb := Patch(a, diff)
+	if b != bb {
+		t.Errorf("<UNK>\n<UNK>:\n%s\n<UNK>:\n%s", b, bb)
+	}
+}
